@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-preview.0.2.0] - 2026-10-30
+
 ### Added
 
 - List parameters: one sealed record per PureQL list literal implementing `IListParameter` (`IntegerListParameter(IEnumerable<INumber<long>>)`, `DecimalListParameter`, `StringListParameter`, `BooleanListParameter`, `DateListParameter`, `TimeListParameter`, `DateTimeListParameter` and `UuidListParameter`) and `IParameterType` (`IntegerListParameterType` … `UuidListParameterType`, named `integerList` … `uuidList`, never nullable). `Items` holds each value as the scalar parameter of its type, in order, never a typed null. `Value` is informational: a JSON array of the items' cell texts, each as a JSON string, such as `["paid","shipped"]`, and `[]` for an empty list, escaped by `Utf8JsonWriter` without reflection. The values are read when the text is first read.
