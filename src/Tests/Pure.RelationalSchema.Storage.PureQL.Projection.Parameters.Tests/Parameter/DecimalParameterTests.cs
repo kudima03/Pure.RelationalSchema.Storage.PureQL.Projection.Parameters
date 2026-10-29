@@ -10,7 +10,7 @@ namespace Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Tests.Param
 public sealed record DecimalParameterTests
 {
     public static TheoryData<decimal, string> Texts =>
-        new()
+        new TheoryData<decimal, string>
         {
             { 0m, "0" },
             { 0.0m, "0" },

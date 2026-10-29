@@ -11,7 +11,7 @@ namespace Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Tests.Param
 public sealed record TimeParameterTests
 {
     public static TheoryData<TimeOnly, string> Texts =>
-        new()
+        new TheoryData<TimeOnly, string>
         {
             { TimeOnly.MinValue, "00:00:00" },
             { new TimeOnly(8, 30), "08:30:00" },

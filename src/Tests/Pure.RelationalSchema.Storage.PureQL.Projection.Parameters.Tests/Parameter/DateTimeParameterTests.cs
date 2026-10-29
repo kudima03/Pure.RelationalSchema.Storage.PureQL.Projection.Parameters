@@ -13,7 +13,7 @@ namespace Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Tests.Param
 public sealed record DateTimeParameterTests
 {
     public static TheoryData<System.DateTime, string> Texts =>
-        new()
+        new TheoryData<System.DateTime, string>
         {
             { Utc(2026, 10, 29, 8, 30, 0), "2026-10-29T08:30:00" },
             { Utc(2026, 1, 5, 0, 0, 0), "2026-01-05T00:00:00" },

@@ -11,7 +11,7 @@ namespace Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Tests.Param
 public sealed record DateParameterTests
 {
     public static TheoryData<DateOnly, string> Texts =>
-        new()
+        new TheoryData<DateOnly, string>
         {
             { new DateOnly(2026, 10, 29), "2026-10-29" },
             { new DateOnly(2026, 1, 5), "2026-01-05" },
