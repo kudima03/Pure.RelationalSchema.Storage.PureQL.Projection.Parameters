@@ -13,11 +13,12 @@ A PureQL query can read named parameters, and `Pure.RelationalSchema.Storage.Pur
 
 `Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions` describes the Pure-style counterpart of a literal: an `IParameter` with its `IParameterType` and its value as the text a stored cell holds. Its `IListParameter` is the counterpart of a list literal: a list type and the items, each a parameter of the item type. This package implements those interfaces with one sealed record per literal and per list literal, built from `Pure.Primitives` abstractions only. It does not depend on `PureQL.CSharp.Model` or the projection, so a domain layer can build, store or send parameters without them, and AOT-compiled code can use it.
 
-- **Exact cell text.** `Value` is in the format the projection writes result cells (`CellText`) and parses stored cells (`StoredColumn`), so the projection's own `X.Parse(text, CultureInfo.InvariantCulture)` calls read it back to the original value.
+- **Exact cell text.** Except for the relative parameters, `Value` is in the format the projection writes result cells (`CellText`) and parses stored cells (`StoredColumn`), so the projection's own `X.Parse(text, CultureInfo.InvariantCulture)` calls read it back to the original value.
 - **Invariant.** The text does not depend on the current culture.
 - **Lazy.** A constructor does not read the value. It is read when `Value.TextValue`, or its characters, is first read, as `Pure.Primitives.String.String` does.
 - **Typed nulls.** Each type has a parameterless `Nullable…Parameter` whose value is the empty string, the storage layer's NULL, and whose type has `Nullable` true.
 - **Lists.** Each type has a `…ListParameter` whose items are the scalar parameters of its values, and whose value is a JSON array of their texts, written without reflection.
+- **Relative dates and times.** `RelativeDateParameter`, `RelativeTimeParameter` and `RelativeDateTimeParameter` hold date math such as `now-10d`, which the projection evaluates against the instant the query runs.
 
 ## Installation
 
@@ -60,6 +61,31 @@ The parameters live in `Pure.RelationalSchema.Storage.PureQL.Projection.Paramete
 
 The type names are those of `PureQL.CSharp.Model.Types`. A nullable type has the name of its non-null type: `TypeIntegerNullable.Name` is `integer`, and only `Nullable` tells them apart. For a `string` parameter, `Nullable` also tells a typed null from the empty string. A list type is never nullable.
 
+### Relative dates and times
+
+A report for the last ten days or the last week needs a date relative to when the query runs, not to when the parameter is built. These parameters hold that as date math, the relative values of Elasticsearch and Grafana, and `Pure.RelationalSchema.Storage.PureQL.Projection` evaluates it when the query runs. This package does not evaluate it.
+
+| Parameter | Type | `Name` | `Value` | Units |
+|-----------|------|--------|---------|-------|
+| `RelativeDateParameter(INumber<long>)` | `DateParameterType` | `date` | `now-10d` for `-10`, `now+3d` for `3`, `now+0d` for `0` | days |
+| `RelativeDateParameter(IString)` | `DateParameterType` | `date` | the expression, such as `now-1w/w` | `y`, `M`, `w`, `d` |
+| `RelativeTimeParameter(IString)` | `TimeParameterType` | `time` | the expression, such as `now-30m` | `h`, `m`, `s` |
+| `RelativeDateTimeParameter(IString)` | `DateTimeParameterType` | `datetime` | the expression, such as `now-7d` | `y`, `M`, `w`, `d`, `h`, `m`, `s` |
+
+Date math is `now`, then any number of operations applied left to right: `+N` or `-N` of a unit, or `/` and a unit to round down to the start of that unit. The units are `y` (years), `M` (months), `w` (weeks, which start on Monday), `d` (days), `h` (hours), `m` (minutes) and `s` (seconds), each written in this case only. For example, on Thursday 2026-10-29 at 08:30 UTC:
+
+| Date math | Meaning | Value |
+|-----------|---------|-------|
+| `now-10d` | ten days ago | `2026-10-19` as a date |
+| `now/w` | the start of this week | `2026-10-26` as a date |
+| `now-1w/w` | the start of last week | `2026-10-19` as a date |
+| `now-1M/M` | the start of last month | `2026-09-01` as a date |
+| `now-7d` | seven days ago, to the instant | `2026-10-22T08:30:00` as a datetime |
+| `now/d` | today at midnight | `2026-10-29T00:00:00` as a datetime |
+| `now-30m` | half an hour ago | `08:00:00` as a time, wrapping around midnight |
+
+A last-week report is `orders.ordered_at >= :from AND orders.ordered_at < :to`, with `from` bound to `now-1w/w` and `to` to `now/w`. `now` is the UTC instant the query runs, so a date is the UTC date. The `Type` is that of the value the date math gives, so a query declares the parameter as a plain `date`, `time` or `datetime`. The expression is checked when it is evaluated, not when the parameter is built.
+
 ### The value text
 
 - **Decimals** are exact. The scale a `decimal` carries is dropped (`1.50` → `1.5`, `4.00` → `4`, `-0.0` → `0`), and large or small values are written in full (`1E+20m` → `100000000000000000000`).
@@ -93,6 +119,8 @@ IParameter price = new DecimalParameter(new Decimal(9.990m));
 IParameter since = new DateParameter(new Date(new DateOnly(2026, 10, 29)));
 IParameter opensAt = new TimeParameter(new Time(new TimeOnly(8, 30, 0, 250)));
 IParameter shippedBefore = new NullableDateParameter();
+IParameter tenDaysAgo = new RelativeDateParameter(new Long(-10));
+IParameter lastWeekStart = new RelativeDateParameter(new String("now-1w/w"));
 IListParameter statuses = new StringListParameter(
     [new String("paid"), new String("say \"hi\"")]
 );
@@ -104,13 +132,16 @@ Console.WriteLine(since.Value.TextValue); // 2026-10-29
 Console.WriteLine(opensAt.Value.TextValue); // 08:30:00.25
 Console.WriteLine(shippedBefore.Type.Nullable.BoolValue); // True
 Console.WriteLine(shippedBefore.Value.TextValue.Length); // 0
+Console.WriteLine(tenDaysAgo.Type.Name.TextValue); // date
+Console.WriteLine(tenDaysAgo.Value.TextValue); // now-10d
+Console.WriteLine(lastWeekStart.Value.TextValue); // now-1w/w
 Console.WriteLine(statuses.Type.Name.TextValue); // stringList
 Console.WriteLine(statuses.Value.TextValue); // ["paid","say \"hi\""]
 Console.WriteLine(userIds.Items.First().Value.TextValue); // 7
 Console.WriteLine(userIds.Value.TextValue); // ["7","-42"]
 ```
 
-When the query runs, each parameter becomes the PureQL literal its type names, parsed the way the projection parses a stored cell, a list parameter the list literal of its items, and the literals bind the query's parameters by name. This conversion needs `PureQL.CSharp.Model`, so it lives with the code that runs the query, not in this package:
+When the query runs, each parameter becomes the PureQL literal its type names, parsed the way the projection parses a stored cell, a list parameter the list literal of its items, and the literals bind the query's parameters by name. This conversion needs `PureQL.CSharp.Model`, so it lives with the code that runs the query, not in this package. A relative parameter is evaluated by the projection first, since `now-10d` is not a date:
 
 ```csharp
 using System.Globalization;
@@ -199,7 +230,7 @@ The examples were compiled against `Pure.RelationalSchema.Storage.PureQL.Project
 
 ## Design Principles
 
-- **One record per literal** — 16 parameters, 8 list parameters and 24 parameter types, each a `sealed record`
+- **One record per literal** — 16 parameters, 8 list parameters and 24 parameter types, each a `sealed record`, and 3 relative parameters of the date, time and datetime types
 - **Model-agnostic** — depends on `Pure.Primitives` and the parameter abstractions only, never on the PureQL model or the projection
 - **Lazy** — values are read when the text is read
 - **AOT-compatible** — `IsAotCompatible=true`
