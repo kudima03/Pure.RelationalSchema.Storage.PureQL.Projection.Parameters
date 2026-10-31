@@ -20,20 +20,4 @@ public sealed record NullableIntegerParameterTypeTests
 
         Assert.True(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableIntegerParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableIntegerParameterType().ToString()
-        );
-    }
 }

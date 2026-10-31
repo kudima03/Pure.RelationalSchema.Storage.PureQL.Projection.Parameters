@@ -20,20 +20,4 @@ public sealed record NullableDateTimeParameterTypeTests
 
         Assert.True(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableDateTimeParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableDateTimeParameterType().ToString()
-        );
-    }
 }

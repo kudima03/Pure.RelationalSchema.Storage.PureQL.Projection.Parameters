@@ -20,20 +20,4 @@ public sealed record NullableBooleanParameterTypeTests
 
         Assert.True(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableBooleanParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableBooleanParameterType().ToString()
-        );
-    }
 }

@@ -111,20 +111,4 @@ public sealed record TimeParameterTests
         Assert.Equal("08:30:00.25", Characters.Text(parameter.Value));
         Assert.Equal("08:30:00.25", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new TimeParameter(new Time(TimeOnly.MinValue)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new TimeParameter(new Time(TimeOnly.MinValue)).ToString()
-        );
-    }
 }

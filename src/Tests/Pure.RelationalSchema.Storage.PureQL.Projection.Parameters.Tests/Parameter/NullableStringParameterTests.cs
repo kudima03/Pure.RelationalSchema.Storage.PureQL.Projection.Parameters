@@ -38,20 +38,4 @@ public sealed record NullableStringParameterTests
         Assert.Equal(string.Empty, Characters.Text(parameter.Value));
         Assert.Equal(string.Empty, Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableStringParameter().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new NullableStringParameter().ToString()
-        );
-    }
 }

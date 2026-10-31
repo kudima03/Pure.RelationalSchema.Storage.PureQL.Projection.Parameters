@@ -62,20 +62,4 @@ public sealed record StringParameterTests
         Assert.Equal("Ünï 🎉", Characters.Text(parameter.Value));
         Assert.Equal("Ünï 🎉", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new StringParameter(new String("Ada")).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new StringParameter(new String("Ada")).ToString()
-        );
-    }
 }

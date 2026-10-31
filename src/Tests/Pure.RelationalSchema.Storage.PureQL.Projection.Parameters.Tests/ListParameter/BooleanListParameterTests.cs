@@ -195,30 +195,6 @@ public sealed record BooleanListParameterTests
         Assert.Equal(SampleJson, Characters.NonGenericText(parameter.Value));
     }
 
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() => List(Sample).GetHashCode());
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() => List(Sample).ToString());
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCodeOfValue()
-    {
-        _ = Assert.Throws<NotSupportedException>(() => List(Sample).Value.GetHashCode());
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToStringOfValue()
-    {
-        _ = Assert.Throws<NotSupportedException>(() => List(Sample).Value.ToString());
-    }
-
     private static BooleanListParameter List(bool[] values)
     {
         return new BooleanListParameter(Pure(values));

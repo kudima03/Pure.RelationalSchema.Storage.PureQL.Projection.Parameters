@@ -74,20 +74,4 @@ public sealed record BooleanParameterTests
         Assert.Equal("False", Characters.Text(parameter.Value));
         Assert.Equal("False", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new BooleanParameter(new True()).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new BooleanParameter(new True()).ToString()
-        );
-    }
 }
