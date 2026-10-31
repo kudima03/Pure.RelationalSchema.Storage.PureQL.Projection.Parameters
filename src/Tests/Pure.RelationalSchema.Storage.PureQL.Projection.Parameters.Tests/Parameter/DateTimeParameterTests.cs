@@ -137,22 +137,6 @@ public sealed record DateTimeParameterTests
         Assert.Equal("2026-10-29T08:30:00", Characters.NonGenericText(parameter.Value));
     }
 
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DateTimeParameter(Instant(System.DateTime.UnixEpoch)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DateTimeParameter(Instant(System.DateTime.UnixEpoch)).ToString()
-        );
-    }
-
     private static System.DateTime Utc(
         int year,
         int month,

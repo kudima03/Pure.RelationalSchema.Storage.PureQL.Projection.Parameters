@@ -20,20 +20,4 @@ public sealed record StringParameterTypeTests
 
         Assert.False(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new StringParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new StringParameterType().ToString()
-        );
-    }
 }

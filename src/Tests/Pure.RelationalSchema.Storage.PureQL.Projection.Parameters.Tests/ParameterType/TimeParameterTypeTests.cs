@@ -20,20 +20,4 @@ public sealed record TimeParameterTypeTests
 
         Assert.False(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new TimeParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new TimeParameterType().ToString()
-        );
-    }
 }

@@ -76,36 +76,4 @@ public sealed record IntegerParameterTests
         Assert.Equal("-42", Characters.Text(parameter.Value));
         Assert.Equal("-42", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new IntegerParameter(new Long(1)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new IntegerParameter(new Long(1)).ToString()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCodeOfValue()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new IntegerParameter(new Long(1)).Value.GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToStringOfValue()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new IntegerParameter(new Long(1)).Value.ToString()
-        );
-    }
 }

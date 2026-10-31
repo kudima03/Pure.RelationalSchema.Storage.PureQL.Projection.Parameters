@@ -20,20 +20,4 @@ public sealed record DecimalParameterTypeTests
 
         Assert.False(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DecimalParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DecimalParameterType().ToString()
-        );
-    }
 }

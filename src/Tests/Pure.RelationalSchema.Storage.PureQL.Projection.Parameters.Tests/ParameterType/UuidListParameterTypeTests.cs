@@ -20,20 +20,4 @@ public sealed record UuidListParameterTypeTests
 
         Assert.False(type.Nullable.BoolValue);
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new UuidListParameterType().GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new UuidListParameterType().ToString()
-        );
-    }
 }

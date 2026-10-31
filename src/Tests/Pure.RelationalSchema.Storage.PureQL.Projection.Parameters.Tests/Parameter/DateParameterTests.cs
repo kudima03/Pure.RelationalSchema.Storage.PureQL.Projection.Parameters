@@ -95,20 +95,4 @@ public sealed record DateParameterTests
         Assert.Equal("2026-10-29", Characters.Text(parameter.Value));
         Assert.Equal("2026-10-29", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DateParameter(new Date(DateOnly.MinValue)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DateParameter(new Date(DateOnly.MinValue)).ToString()
-        );
-    }
 }

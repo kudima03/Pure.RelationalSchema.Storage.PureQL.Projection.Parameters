@@ -32,24 +32,4 @@ public sealed record DateParameter : IParameter
     /// not before.
     /// </summary>
     public IString Value { get; }
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override string ToString()
-    {
-        throw new NotSupportedException();
-    }
 }

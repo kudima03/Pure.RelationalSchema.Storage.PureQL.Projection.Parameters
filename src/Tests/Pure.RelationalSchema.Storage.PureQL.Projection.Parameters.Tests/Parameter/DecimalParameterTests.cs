@@ -90,20 +90,4 @@ public sealed record DecimalParameterTests
         Assert.Equal("-1.5", Characters.Text(parameter.Value));
         Assert.Equal("-1.5", Characters.NonGenericText(parameter.Value));
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DecimalParameter(new Decimal(1m)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new DecimalParameter(new Decimal(1m)).ToString()
-        );
-    }
 }

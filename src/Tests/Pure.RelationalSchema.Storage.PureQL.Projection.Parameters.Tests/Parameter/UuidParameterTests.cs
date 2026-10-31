@@ -81,20 +81,4 @@ public sealed record UuidParameterTests
             Characters.NonGenericText(parameter.Value)
         );
     }
-
-    [Fact]
-    public void ThrowsExceptionOnGetHashCode()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new UuidParameter(new Guid(System.Guid.Empty)).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ThrowsExceptionOnToString()
-    {
-        _ = Assert.Throws<NotSupportedException>(() =>
-            new UuidParameter(new Guid(System.Guid.Empty)).ToString()
-        );
-    }
 }

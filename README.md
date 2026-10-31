@@ -13,11 +13,12 @@ A PureQL query can read named parameters, and `Pure.RelationalSchema.Storage.Pur
 
 `Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions` describes the Pure-style counterpart of a literal: an `IParameter` with its `IParameterType` and its value as the text a stored cell holds. Its `IListParameter` is the counterpart of a list literal: a list type and the items, each a parameter of the item type. This package implements those interfaces with one sealed record per literal and per list literal, built from `Pure.Primitives` abstractions only. It does not depend on `PureQL.CSharp.Model` or the projection, so a domain layer can build, store or send parameters without them, and AOT-compiled code can use it.
 
-- **Exact cell text.** `Value` is in the format the projection writes result cells (`CellText`) and parses stored cells (`StoredColumn`), so the projection's own `X.Parse(text, CultureInfo.InvariantCulture)` calls read it back to the original value.
+- **Exact cell text.** Except for the current and offset parameters, `Value` is in the format the projection writes result cells (`CellText`) and parses stored cells (`StoredColumn`), so the projection's own `X.Parse(text, CultureInfo.InvariantCulture)` calls read it back to the original value.
 - **Invariant.** The text does not depend on the current culture.
 - **Lazy.** A constructor does not read the value. It is read when `Value.TextValue`, or its characters, is first read, as `Pure.Primitives.String.String` does.
 - **Typed nulls.** Each type has a parameterless `Nullable…Parameter` whose value is the empty string, the storage layer's NULL, and whose type has `Nullable` true.
 - **Lists.** Each type has a `…ListParameter` whose items are the scalar parameters of its values, and whose value is a JSON array of their texts, written without reflection.
+- **Current and offset dates and times.** `CurrentDateParameter`, `DateOffsetParameter` and their time and datetime counterparts hold date math such as `now` or `now-10d`, which the projection evaluates against the instant the query runs.
 
 ## Installation
 
@@ -25,7 +26,7 @@ A PureQL query can read named parameters, and `Pure.RelationalSchema.Storage.Pur
 dotnet add package Pure.RelationalSchema.Storage.PureQL.Projection.Parameters
 ```
 
-The interfaces come with it from `Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions`, and the primitives from `Pure.Primitives`.
+The interfaces come with it from `Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions`, and the primitives from `Pure.Primitives` through `Pure.Primitives.String.Operations`.
 
 ## Parameters
 
@@ -60,6 +61,36 @@ The parameters live in `Pure.RelationalSchema.Storage.PureQL.Projection.Paramete
 
 The type names are those of `PureQL.CSharp.Model.Types`. A nullable type has the name of its non-null type: `TypeIntegerNullable.Name` is `integer`, and only `Nullable` tells them apart. For a `string` parameter, `Nullable` also tells a typed null from the empty string. A list type is never nullable.
 
+### Current and offset dates and times
+
+A report for the last ten days needs a date relative to when the query runs, not to when the parameter is built. These parameters hold it as date math, the relative values of Elasticsearch and Grafana, such as `now-10d`, and `Pure.RelationalSchema.Storage.PureQL.Projection` evaluates it against the UTC instant the query runs. This package does not evaluate it.
+
+| Parameter | Type | `Name` | `Value` |
+|-----------|------|--------|---------|
+| `CurrentDateParameter()` | `DateParameterType` | `date` | `now` |
+| `CurrentTimeParameter()` | `TimeParameterType` | `time` | `now` |
+| `CurrentDateTimeParameter()` | `DateTimeParameterType` | `datetime` | `now` |
+| `DateOffsetParameter(years, months, days)`, `(months, days)`, `(days)` | `DateParameterType` | `date` | `now-10d` for `(-10)`, `now-1M-5d` for `(-1, -5)` |
+| `TimeOffsetParameter(hours, minutes, seconds)`, `(minutes, seconds)`, `(seconds)` | `TimeParameterType` | `time` | `now-30m` for `(-30, 0)` |
+| `DateTimeOffsetParameter(years, months, days, hours, minutes, seconds)`, `(months, …, seconds)`, `(days, hours, minutes, seconds)`, `(hours, minutes, seconds)`, `(minutes, seconds)`, `(seconds)` | `DateTimeParameterType` | `datetime` | `now-7d` for `(-7, 0, 0, 0)`, `now-2h` for `(-2, 0, 0)` |
+
+Every part is an `INumber<long>`, negative to go back. The date math is `now`, then each part that is not zero as its sign, its invariant number and its unit, in the order of the constructor: `y` (years), `M` (months), `d` (days), `h` (hours), `m` (minutes) and `s` (seconds). It is `now` when every part is zero. The parts must not mix signs: `DateOffsetParameter(new Long(-1), new Long(60))`, which would be `-1M+60d`, throws `ArgumentException` when its `Value` is read. The parts are read then too, not when the parameter is built.
+
+For example, on Thursday 2026-10-29 at 08:30 UTC:
+
+| Parameter | Date math | Value |
+|-----------|-----------|-------|
+| `CurrentDateParameter()` | `now` | `2026-10-29` |
+| `DateOffsetParameter(new Long(-10))` | `now-10d` | `2026-10-19` |
+| `DateOffsetParameter(new Long(-1), new Long(-5))` | `now-1M-5d` | `2026-09-24` |
+| `TimeOffsetParameter(new Long(-30), new Long(0))` | `now-30m` | `08:00:00`, wrapping around midnight |
+| `DateTimeOffsetParameter(new Long(-7), new Long(0), new Long(0), new Long(0))` | `now-7d` | `2026-10-22T08:30:00` |
+| `CurrentDateTimeParameter()` | `now` | `2026-10-29T08:30:00` |
+
+A report for the last seven days is `orders.ordered_at >= :from AND orders.ordered_at < :to`, with `from` bound to `now-7d` and `to` to `now`. Each `Type` is the type of the value the date math gives, so a query declares the parameter as a plain `date`, `time` or `datetime`.
+
+**The evaluator's contract.** The projection evaluates `now` as the UTC instant the query runs (a date is its UTC date, a time its UTC time of day) and applies the parts in order: years and months as calendar months, with the day clamped to the end of a shorter month, then days, hours, minutes and seconds. A date takes `y`, `M` and `d`; a time `h`, `m` and `s`, and wraps around midnight; a datetime all six. There is no rounding to the start of a week or month yet.
+
 ### The value text
 
 - **Decimals** are exact. The scale a `decimal` carries is dropped (`1.50` → `1.5`, `4.00` → `4`, `-0.0` → `0`), and large or small values are written in full (`1E+20m` → `100000000000000000000`).
@@ -74,7 +105,7 @@ The type names are those of `PureQL.CSharp.Model.Types`. A nullable type has the
 
 The `Pure.Primitives` constructors that turn an `IDate`, `ITime` or `IDateTime` into a `String` write another format (`10/29/2026`, `8:30:0.250.0`), which the projection cannot parse. This package does not use them.
 
-`GetHashCode` and `ToString` of every record, and of the value text, throw `NotSupportedException`, as in the other Pure records.
+`Equals`, `GetHashCode` and `ToString` of every record are those the compiler generates for a record.
 
 ## Usage
 
@@ -93,6 +124,9 @@ IParameter price = new DecimalParameter(new Decimal(9.990m));
 IParameter since = new DateParameter(new Date(new DateOnly(2026, 10, 29)));
 IParameter opensAt = new TimeParameter(new Time(new TimeOnly(8, 30, 0, 250)));
 IParameter shippedBefore = new NullableDateParameter();
+IParameter tenDaysAgo = new DateOffsetParameter(new Long(-10));
+IParameter monthAgo = new DateOffsetParameter(new Long(-1), new Long(0));
+IParameter today = new CurrentDateParameter();
 IListParameter statuses = new StringListParameter(
     [new String("paid"), new String("say \"hi\"")]
 );
@@ -104,13 +138,17 @@ Console.WriteLine(since.Value.TextValue); // 2026-10-29
 Console.WriteLine(opensAt.Value.TextValue); // 08:30:00.25
 Console.WriteLine(shippedBefore.Type.Nullable.BoolValue); // True
 Console.WriteLine(shippedBefore.Value.TextValue.Length); // 0
+Console.WriteLine(tenDaysAgo.Type.Name.TextValue); // date
+Console.WriteLine(tenDaysAgo.Value.TextValue); // now-10d
+Console.WriteLine(monthAgo.Value.TextValue); // now-1M
+Console.WriteLine(today.Value.TextValue); // now
 Console.WriteLine(statuses.Type.Name.TextValue); // stringList
 Console.WriteLine(statuses.Value.TextValue); // ["paid","say \"hi\""]
 Console.WriteLine(userIds.Items.First().Value.TextValue); // 7
 Console.WriteLine(userIds.Value.TextValue); // ["7","-42"]
 ```
 
-When the query runs, each parameter becomes the PureQL literal its type names, parsed the way the projection parses a stored cell, a list parameter the list literal of its items, and the literals bind the query's parameters by name. This conversion needs `PureQL.CSharp.Model`, so it lives with the code that runs the query, not in this package:
+When the query runs, each parameter becomes the PureQL literal its type names, parsed the way the projection parses a stored cell, a list parameter the list literal of its items, and the literals bind the query's parameters by name. This conversion needs `PureQL.CSharp.Model`, so it lives with the code that runs the query, not in this package. A current or offset parameter is evaluated by the projection first, since `now-10d` is not a date:
 
 ```csharp
 using System.Globalization;
@@ -199,7 +237,7 @@ The examples were compiled against `Pure.RelationalSchema.Storage.PureQL.Project
 
 ## Design Principles
 
-- **One record per literal** — 16 parameters, 8 list parameters and 24 parameter types, each a `sealed record`
+- **One record per literal** — 16 parameters, 8 list parameters and 24 parameter types, each a `sealed record`, and 6 current and offset parameters of the date, time and datetime types
 - **Model-agnostic** — depends on `Pure.Primitives` and the parameter abstractions only, never on the PureQL model or the projection
 - **Lazy** — values are read when the text is read
 - **AOT-compatible** — `IsAotCompatible=true`
@@ -208,7 +246,7 @@ The examples were compiled against `Pure.RelationalSchema.Storage.PureQL.Project
 ## Dependencies
 
 - [`Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions`](https://github.com/kudima03/Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions) — `IParameter`, `IListParameter` and `IParameterType`
-- [`Pure.Primitives`](https://github.com/kudima03/Pure.Primitives/tree/3.7.0) — `String`, `EmptyString`, `True` and `False`; brings in `Pure.Primitives.Abstractions` 4.3.0
+- [`Pure.Primitives.String.Operations`](https://github.com/kudima03/Pure.Primitives.String.Operations/tree/1.7.0) — `ConcatenatedString`; brings in [`Pure.Primitives`](https://github.com/kudima03/Pure.Primitives/tree/3.7.0) 3.7.0 (`String`, `EmptyString`, `True` and `False`) and `Pure.Primitives.Abstractions` 4.3.0
 
 ## Target Frameworks
 

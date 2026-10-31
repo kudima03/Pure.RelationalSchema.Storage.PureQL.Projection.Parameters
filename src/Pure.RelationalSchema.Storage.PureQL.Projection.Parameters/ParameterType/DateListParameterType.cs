@@ -21,24 +21,4 @@ public sealed record DateListParameterType : IParameterType
     /// Gets false: a PureQL list type is never nullable.
     /// </summary>
     public IBool Nullable { get; } = new False();
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override string ToString()
-    {
-        throw new NotSupportedException();
-    }
 }
