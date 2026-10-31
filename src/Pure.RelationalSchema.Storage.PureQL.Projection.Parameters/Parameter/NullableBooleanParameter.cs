@@ -21,24 +21,4 @@ public sealed record NullableBooleanParameter : IParameter
     /// Gets the empty string, the storage layer's NULL.
     /// </summary>
     public IString Value { get; } = new EmptyString();
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override string ToString()
-    {
-        throw new NotSupportedException();
-    }
 }

@@ -19,7 +19,7 @@
     <PackageProjectUrl>https://github.com/kudima03/Pure.RelationalSchema.Storage.PureQL.Projection.Parameters</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Pure.Primitives" Version="3.7.0" />
+    <PackageReference Include="Pure.Primitives.String.Operations" Version="1.7.0" />
     <PackageReference
       Include="Pure.RelationalSchema.Storage.PureQL.Projection.Parameters.Abstractions"
       Version="0.1.0-preview.0.2.0"

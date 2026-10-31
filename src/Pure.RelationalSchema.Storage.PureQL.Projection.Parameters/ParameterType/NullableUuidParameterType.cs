@@ -21,24 +21,4 @@ public sealed record NullableUuidParameterType : IParameterType
     /// Gets true: a parameter of this type is a typed null.
     /// </summary>
     public IBool Nullable { get; } = new True();
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    /// <summary>
-    /// Not supported, as in the other Pure primitives.
-    /// </summary>
-    /// <returns>Never returns.</returns>
-    /// <exception cref="NotSupportedException">Always.</exception>
-    public override string ToString()
-    {
-        throw new NotSupportedException();
-    }
 }

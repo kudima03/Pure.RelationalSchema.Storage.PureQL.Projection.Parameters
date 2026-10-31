@@ -36,16 +36,6 @@ internal sealed record ListText : IString
         return _text.Value.Select(symbol => new Char(symbol)).GetEnumerator();
     }
 
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    public override string ToString()
-    {
-        throw new NotSupportedException();
-    }
-
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();

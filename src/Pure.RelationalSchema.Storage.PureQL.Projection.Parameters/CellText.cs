@@ -20,7 +20,6 @@ namespace Pure.RelationalSchema.Storage.PureQL.Projection.Parameters;
 // seconds written only when present, and lower case D-format uuids. The
 // Pure.Primitives String conversions of dates and times write another format
 // (10/29/2026, 8:30:0.0.0). The value is read when the text is first read.
-// A relative parameter gives its own Lazy text.
 internal sealed record CellText : IString
 {
     private const string DateFormat = "yyyy-MM-dd";
@@ -104,7 +103,7 @@ internal sealed record CellText : IString
         )
     { }
 
-    public CellText(Lazy<string> text)
+    private CellText(Lazy<string> text)
     {
         _text = text;
     }
@@ -114,16 +113,6 @@ internal sealed record CellText : IString
     public IEnumerator<IChar> GetEnumerator()
     {
         return _text.Value.Select(symbol => new Char(symbol)).GetEnumerator();
-    }
-
-    public override int GetHashCode()
-    {
-        throw new NotSupportedException();
-    }
-
-    public override string ToString()
-    {
-        throw new NotSupportedException();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
