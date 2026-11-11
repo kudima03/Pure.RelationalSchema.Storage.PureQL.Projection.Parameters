@@ -64,7 +64,7 @@ CI runs mutation testing via `dotnet-stryker` at `Complete` level with a 100% br
 
 **CI style check:** the `Code style check by csharpier` step in `.github/workflows/build-and-test.yml` is commented out on purpose. csharpier's default width of 100 conflicts with the 90-column limit, and `dotnet format` is the authoritative check.
 
-**Multi-targeting:** net8.0, net9.0, net10.0. `IsAotCompatible` is `true` and the build must stay free of IL2026/IL3050 warnings.
+**Multi-targeting:** net8.0, net9.0, net10.0, net11.0. `IsAotCompatible` is `true` and the build must stay free of IL2026/IL3050 warnings.
 
 **Documentation:** `GenerateDocumentationFile` is on, so the XML docs ship in the package and a public member without a doc comment fails the build (CS1591 under `-warnaserror`).
 
