@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-preview.0.4.0] - 2026-11-11
+
+### Added
+
+- .NET 11 support: the package now targets `net11.0` as well.
+
+### Changed
+
+- Dependencies updated to their .NET 11 releases.
+
 ## [0.1.0-preview.0.3.0] - 2026-10-31
 
 ### Added
